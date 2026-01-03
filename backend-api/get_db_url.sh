@@ -1,0 +1,1 @@
+python3 -c "import core.config; print(core.config.settings.database_url)"

@@ -10,7 +10,7 @@ class Settings(BaseSettings):
     POSTGRES_DB: Optional[str] = None
     POSTGRES_HOST: str = "db"
     POSTGRES_PORT: str = "5432"
-
+    
     class Config:
         env_file = ".env"
 
@@ -26,3 +26,5 @@ if not settings.database_url:
     port = settings.POSTGRES_PORT or os.getenv("POSTGRES_PORT", "5432")
     if user and pw and db:
         settings.database_url = f"postgresql+asyncpg://{user}:{pw}@{host}:{port}/{db}"
+        
+

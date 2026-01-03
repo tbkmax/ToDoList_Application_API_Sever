@@ -1,5 +1,5 @@
-from sqlalchemy import Column, String, Integer, Boolean, Text, Numeric, TIMESTAMP, ForeignKey, JSON
-from sqlalchemy.dialects.postgresql import UUID, JSONB
+from sqlalchemy import String, Integer, Boolean, Text, TIMESTAMP, ForeignKey
+from sqlalchemy.dialects.postgresql import UUID
 from sqlalchemy.orm import DeclarativeBase, Mapped, mapped_column, relationship
 import uuid
 from datetime import datetime
@@ -9,60 +9,45 @@ class Base(DeclarativeBase):
     pass
 
 
+class User(Base):
+    __tablename__ = "users"
+
+    id: Mapped[uuid.UUID] = mapped_column(UUID(as_uuid=True), primary_key=True, default=uuid.uuid4)
+    email: Mapped[str] = mapped_column(String(255), unique=True, nullable=False)
+    password_hash: Mapped[str] = mapped_column(Text, nullable=False)
+    created_at: Mapped[datetime] = mapped_column(TIMESTAMP(timezone=True), default=datetime.utcnow)
+
+    # Relationships
+    categories: Mapped[list["Category"]] = relationship("Category", back_populates="user")
+    tasks: Mapped[list["Task"]] = relationship("Task", back_populates="user")
+
+
 class Category(Base):
     __tablename__ = "categories"
 
     id: Mapped[uuid.UUID] = mapped_column(UUID(as_uuid=True), primary_key=True, default=uuid.uuid4)
-    parent_id: Mapped[uuid.UUID] = mapped_column(UUID(as_uuid=True), ForeignKey("categories.id"), nullable=True)
-    name: Mapped[str] = mapped_column(String(255))
-    slug: Mapped[str] = mapped_column(String(255), index=True)
-    is_active: Mapped[bool] = mapped_column(Boolean, default=True)
+    user_id: Mapped[uuid.UUID] = mapped_column(UUID(as_uuid=True), ForeignKey("users.id", ondelete="CASCADE"), nullable=False)
+    name: Mapped[str] = mapped_column(String(50), nullable=False)
 
     # Relationships
-    parent: Mapped["Category"] = relationship("Category", remote_side=[id], back_populates="children")
-    children: Mapped[list["Category"]] = relationship("Category", back_populates="parent")
-    products: Mapped[list["Product"]] = relationship("Product", back_populates="category")
+    user: Mapped["User"] = relationship("User", back_populates="categories")
+    tasks: Mapped[list["Task"]] = relationship("Task", back_populates="category")
 
 
-class Product(Base):
-    __tablename__ = "products"
+class Task(Base):
+    __tablename__ = "tasks"
 
     id: Mapped[uuid.UUID] = mapped_column(UUID(as_uuid=True), primary_key=True, default=uuid.uuid4)
-    category_id: Mapped[uuid.UUID] = mapped_column(UUID(as_uuid=True), ForeignKey("categories.id"))
-    sku: Mapped[str] = mapped_column(String(50), unique=True, index=True)
-    name: Mapped[str] = mapped_column(String(255))
-    description: Mapped[str] = mapped_column(Text)
-    base_price: Mapped[float] = mapped_column(Numeric(12,2))
-    attributes: Mapped[dict] = mapped_column(JSONB)
+    user_id: Mapped[uuid.UUID] = mapped_column(UUID(as_uuid=True), ForeignKey("users.id"), nullable=False)
+    category_id: Mapped[uuid.UUID] = mapped_column(UUID(as_uuid=True), ForeignKey("categories.id", ondelete="SET NULL"), nullable=True)
+    title: Mapped[str] = mapped_column(String(255), nullable=False)
+    description: Mapped[str] = mapped_column(Text, nullable=True)
+    is_completed: Mapped[bool] = mapped_column(Boolean, default=False)
+    due_date: Mapped[datetime] = mapped_column(TIMESTAMP(timezone=True), nullable=True)
+    priority: Mapped[int] = mapped_column(Integer, default=0)
+    updated_at: Mapped[datetime] = mapped_column(TIMESTAMP(timezone=True), default=datetime.utcnow, onupdate=datetime.utcnow)
     created_at: Mapped[datetime] = mapped_column(TIMESTAMP(timezone=True), default=datetime.utcnow)
 
     # Relationships
-    category: Mapped["Category"] = relationship("Category", back_populates="products")
-    variants: Mapped[list["ProductVariant"]] = relationship("ProductVariant", back_populates="product")
-
-
-class ProductVariant(Base):
-    __tablename__ = "product_variants"
-
-    id: Mapped[uuid.UUID] = mapped_column(UUID(as_uuid=True), primary_key=True, default=uuid.uuid4)
-    product_id: Mapped[uuid.UUID] = mapped_column(UUID(as_uuid=True), ForeignKey("products.id"))
-    variant_sku: Mapped[str] = mapped_column(String(50), unique=True)
-    price_override: Mapped[float] = mapped_column(Numeric(12,2), nullable=True)
-    attributes: Mapped[dict] = mapped_column(JSONB)
-
-    # Relationships
-    product: Mapped["Product"] = relationship("Product", back_populates="variants")
-    inventories: Mapped[list["Inventory"]] = relationship("Inventory", back_populates="variant")
-
-
-class Inventory(Base):
-    __tablename__ = "inventory"
-
-    id: Mapped[uuid.UUID] = mapped_column(UUID(as_uuid=True), primary_key=True, default=uuid.uuid4)
-    variant_id: Mapped[uuid.UUID] = mapped_column(UUID(as_uuid=True), ForeignKey("product_variants.id"))
-    quantity: Mapped[int] = mapped_column(Integer)
-    reserved: Mapped[int] = mapped_column(Integer, default=0)
-    location: Mapped[str] = mapped_column(String(100))
-
-    # Relationships
-    variant: Mapped["ProductVariant"] = relationship("ProductVariant", back_populates="inventories")
+    user: Mapped["User"] = relationship("User", back_populates="tasks")
+    category: Mapped["Category"] = relationship("Category", back_populates="tasks")

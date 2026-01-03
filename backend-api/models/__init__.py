@@ -1,1 +1,1 @@
-from .models import Base, Category, Product, ProductVariant, Inventory
+from .models import Base, User, Category, Task

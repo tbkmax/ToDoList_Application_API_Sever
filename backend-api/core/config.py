@@ -12,7 +12,7 @@ class Settings(BaseSettings):
     POSTGRES_PORT: str = "5432"
     
     class Config:
-        env_file = ".env"
+        env_file = "../.env"
 
 
 settings = Settings()

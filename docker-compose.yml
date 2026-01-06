@@ -18,7 +18,7 @@ services:
       context: ./backend-api
     command: uvicorn main:app --host 0.0.0.0 --port 8000 --reload
     env_file:
-      - ./backend-api/.env
+      - .env
     environment:
       DATABASE_URL: postgresql+asyncpg://${POSTGRES_USER}:${POSTGRES_PASSWORD}@db:5432/${POSTGRES_DB}
     networks:

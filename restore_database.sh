@@ -1,1 +1,1 @@
-pg_restore -h 127.0.0.1 -p 5433 -U todo_user -d todo_db -v todo_db.dump
+docker compose exec -T db pg_restore -U todo_user -d todo_db -c --if-exists < todo_db.dump

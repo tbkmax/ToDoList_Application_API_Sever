@@ -1,1 +1,1 @@
-pg_dump -h 127.0.0.1 -p 5433 -U todo_user -F c -b -v -f todo_db.dump todo_db
+docker compose exec -t db pg_dump -U todo_user -F c todo_db > todo_db.dump

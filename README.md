@@ -25,7 +25,7 @@ Simple full-stack ToDo list application with a FastAPI backend and a static fron
    ./setup.sh
    ```
 
-3. Start services with Docker Compose:
+3. Start services with Docker Compose: (no need for first time after using `./setup.sh`)
    ```bash
    sudo docker compose up --build
    ```

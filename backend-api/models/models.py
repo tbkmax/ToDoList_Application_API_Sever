@@ -20,6 +20,7 @@ class User(Base):
     # Relationships
     categories: Mapped[list["Category"]] = relationship("Category", back_populates="user")
     tasks: Mapped[list["Task"]] = relationship("Task", back_populates="user")
+    projects: Mapped[list["Project"]] = relationship("Project", back_populates="user")
 
 
 class Category(Base):
@@ -34,12 +35,28 @@ class Category(Base):
     tasks: Mapped[list["Task"]] = relationship("Task", back_populates="category")
 
 
+class Project(Base):
+    __tablename__ = "projects"
+
+    id: Mapped[uuid.UUID] = mapped_column(UUID(as_uuid=True), primary_key=True, default=uuid.uuid4)
+    user_id: Mapped[uuid.UUID] = mapped_column(UUID(as_uuid=True), ForeignKey("users.id", ondelete="CASCADE"), nullable=False)
+    name: Mapped[str] = mapped_column(String(255), nullable=False)
+    create_day: Mapped[datetime] = mapped_column(TIMESTAMP(timezone=True), default=datetime.utcnow)
+    due_date: Mapped[datetime] = mapped_column(TIMESTAMP(timezone=True), nullable=True)
+    progress: Mapped[int] = mapped_column(Integer, default=0)
+
+    # Relationships
+    user: Mapped["User"] = relationship("User", back_populates="projects")
+    tasks: Mapped[list["Task"]] = relationship("Task", back_populates="project")
+
+
 class Task(Base):
     __tablename__ = "tasks"
 
     id: Mapped[uuid.UUID] = mapped_column(UUID(as_uuid=True), primary_key=True, default=uuid.uuid4)
     user_id: Mapped[uuid.UUID] = mapped_column(UUID(as_uuid=True), ForeignKey("users.id"), nullable=False)
     category_id: Mapped[uuid.UUID] = mapped_column(UUID(as_uuid=True), ForeignKey("categories.id", ondelete="SET NULL"), nullable=True)
+    project_id: Mapped[uuid.UUID] = mapped_column(UUID(as_uuid=True), ForeignKey("projects.id", ondelete="SET NULL"), nullable=True)
     title: Mapped[str] = mapped_column(String(255), nullable=False)
     description: Mapped[str] = mapped_column(Text, nullable=True)
     is_completed: Mapped[bool] = mapped_column(Boolean, default=False)

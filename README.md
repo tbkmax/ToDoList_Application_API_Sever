@@ -3,6 +3,10 @@
 
 Simple full-stack ToDo list application with a FastAPI backend and a static frontend served via Nginx. The project includes Docker Compose setup for local development, database dump/restore scripts, and a small set of helper scripts to get started quickly.
 
+## Database Strucutre
+![alt text](assests/image.png)
+
+
 ## Contents
 - **Project:** Lightweight ToDo list API and frontend
 - **Backend:** FastAPI (async) running with Uvicorn

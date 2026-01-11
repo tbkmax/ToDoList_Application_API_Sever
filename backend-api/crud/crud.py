@@ -1,7 +1,7 @@
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy import select, update, delete
-from models.models import User, Category, Task
-from schemas.schemas import UserCreate, UserUpdate, CategoryCreate, CategoryUpdate, TaskCreate, TaskUpdate
+from models.models import User, Category, Task, Project
+from schemas.schemas import UserCreate, UserUpdate, CategoryCreate, CategoryUpdate, TaskCreate, TaskUpdate, ProjectCreate, ProjectUpdate
 from uuid import UUID
 
 
@@ -99,5 +99,37 @@ async def update_task(db: AsyncSession, task_id: UUID, task_update: TaskUpdate, 
 
 async def delete_task(db: AsyncSession, task_id: UUID, user_id: UUID) -> bool:
     result = await db.execute(delete(Task).where(Task.id == task_id, Task.user_id == user_id))
+    await db.commit()
+    return result.rowcount > 0
+
+
+# Project CRUD
+async def get_projects(db: AsyncSession, user_id: UUID) -> list[Project]:
+    result = await db.execute(select(Project).where(Project.user_id == user_id))
+    return result.scalars().all()
+
+
+async def get_project(db: AsyncSession, project_id: UUID, user_id: UUID) -> Project | None:
+    result = await db.execute(select(Project).where(Project.id == project_id, Project.user_id == user_id))
+    return result.scalar_one_or_none()
+
+
+async def create_project(db: AsyncSession, project: ProjectCreate, user_id: UUID) -> Project:
+    db_project = Project(**project.model_dump(), user_id=user_id)
+    db.add(db_project)
+    await db.commit()
+    await db.refresh(db_project)
+    return db_project
+
+
+async def update_project(db: AsyncSession, project_id: UUID, project_update: ProjectUpdate, user_id: UUID) -> Project | None:
+    update_data = project_update.model_dump(exclude_unset=True)
+    await db.execute(update(Project).where(Project.id == project_id, Project.user_id == user_id).values(**update_data))
+    await db.commit()
+    return await get_project(db, project_id, user_id)
+
+
+async def delete_project(db: AsyncSession, project_id: UUID, user_id: UUID) -> bool:
+    result = await db.execute(delete(Project).where(Project.id == project_id, Project.user_id == user_id))
     await db.commit()
     return result.rowcount > 0

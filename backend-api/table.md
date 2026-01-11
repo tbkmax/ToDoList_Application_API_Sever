@@ -31,6 +31,7 @@ This is the core table where the actual to-do items live.
 | `id`            | `UUID`         | **PK**, Default: `gen_random_uuid()` | Unique identifier for the task.       |
 | `user_id`       | `UUID`         | **FK** (Users.id), `NOT NULL`        | Ensures every task belongs to a user. |
 | `category_id`   | `UUID`         | **FK** (Categories.id), `SET NULL`   | Optional link to a category.          |
+| `project_id`    | `UUID`         | **FK** (Projects.id), `SET NULL`     | Optional link to a project.           |
 | `title`         | `VARCHAR(255)` | `NOT NULL`                           | The task summary.                     |
 | `description`   | `TEXT`         |                                      | Detailed notes about the task.        |
 | `is_completed`  | `BOOLEAN`      | Default: `FALSE`                     | The status of the task.               |
@@ -38,5 +39,20 @@ This is the core table where the actual to-do items live.
 | `priority`      | `INT`          | Default: `0`                         | Numeric scale (e.g., 1=Low, 3=High).  |
 | `updated_at`    | `TIMESTAMPTZ`  | Default: `NOW()`                     | Automatically updated on changes.     |
 | created_at      | `TIMESTAMPTZ`  | Default: `NOW()` at created time     | No updated                            |
+
+---
+
+### 4. Projects Table
+
+This table groups tasks into larger initiatives (e.g., "Website Redesign").
+
+| **Column Name** | **Data Type**  | **Constraints**                      | **Description**                       |
+| --------------- | -------------- | ------------------------------------ | ------------------------------------- |
+| `id`            | `UUID`         | **PK**, Default: `gen_random_uuid()` | Unique identifier for the project.    |
+| `user_id`       | `UUID`         | **FK** (Users.id), `ON DELETE CASCADE` | Owner of the project.               |
+| `name`          | `VARCHAR(255)` | `NOT NULL`                           | The project name.                     |
+| `create_day`    | `TIMESTAMPTZ`  | Default: `NOW()`                     | When the project was created.         |
+| `due_date`      | `TIMESTAMPTZ`  |                                      | Optional target completion date.      |
+| `progress`      | `INT`          | Default: `0`                         | Progress percentage (0-100).          |
 
 ---

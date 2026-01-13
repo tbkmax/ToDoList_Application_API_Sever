@@ -12,7 +12,7 @@ jobs:
       - name: Install deps
         run: |
           python -m pip install -U pip
-          pip install sqlalchemy pytest
+          pip install -r backend-api/requirements.txt pytest
       - name: Run unit tests (user CRUD)
         run: |
           pytest backend-api/tests/test_users_crud.py -q

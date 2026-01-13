@@ -3,9 +3,14 @@ from sqlalchemy import select, update, delete
 from models.models import User, Category, Task, Project
 from schemas.schemas import UserCreate, UserUpdate, CategoryCreate, CategoryUpdate, TaskCreate, TaskUpdate, ProjectCreate, ProjectUpdate
 from uuid import UUID
+from passlib.context import CryptContext
 
 
 # User CRUD
+
+# Password hashing context
+# use pbkdf2_sha256 to avoid bcrypt's 72-byte limit and external backends
+pwd_context = CryptContext(schemes=["pbkdf2_sha256"], deprecated="auto")
 async def get_user(db: AsyncSession, user_id: UUID) -> User | None:
     result = await db.execute(select(User).where(User.id == user_id))
     return result.scalar_one_or_none()
@@ -17,7 +22,8 @@ async def get_user_by_email(db: AsyncSession, email: str) -> User | None:
 
 
 async def create_user(db: AsyncSession, user: UserCreate) -> User:
-    db_user = User(email=user.email, password_hash=user.password)  # Note: hash password in real app
+    hashed = pwd_context.hash(user.password)
+    db_user = User(email=user.email, password_hash=hashed)
     db.add(db_user)
     await db.commit()
     await db.refresh(db_user)
@@ -27,7 +33,7 @@ async def create_user(db: AsyncSession, user: UserCreate) -> User:
 async def update_user(db: AsyncSession, user_id: UUID, user_update: UserUpdate) -> User | None:
     update_data = user_update.model_dump(exclude_unset=True)
     if "password" in update_data:
-        update_data["password_hash"] = update_data.pop("password")  # Hash it
+        update_data["password_hash"] = pwd_context.hash(update_data.pop("password"))
     await db.execute(update(User).where(User.id == user_id).values(**update_data))
     await db.commit()
     return await get_user(db, user_id)

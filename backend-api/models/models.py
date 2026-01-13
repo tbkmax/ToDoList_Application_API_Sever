@@ -68,3 +68,4 @@ class Task(Base):
     # Relationships
     user: Mapped["User"] = relationship("User", back_populates="tasks")
     category: Mapped["Category"] = relationship("Category", back_populates="tasks")
+    project: Mapped["Project"] = relationship("Project", back_populates="tasks")

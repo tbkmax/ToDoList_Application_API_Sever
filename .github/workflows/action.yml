@@ -3,17 +3,6 @@ on: [push]
 jobs:
   db-connection:
     runs-on: ubuntu-latest
-    services:
-      postgres:
-        image: postgres:15
-        env:
-          POSTGRES_USER: postgres
-          POSTGRES_PASSWORD: postgres
-          POSTGRES_DB: test_db
-        ports:
-          - 5432:5432
-        options: >-
-          --health-cmd="pg_isready -U postgres" --health-interval=5s --health-timeout=5s --health-retries=5
     steps:
       - uses: actions/checkout@v5
       - name: Set up Python
@@ -23,12 +12,7 @@ jobs:
       - name: Install deps
         run: |
           python -m pip install -U pip
-          pip install sqlalchemy pytest psycopg2-binary
-      - name: Wait for Postgres
+          pip install sqlalchemy pytest
+      - name: Run unit tests (user CRUD)
         run: |
-          for i in {1..10}; do pg_isready -h 127.0.0.1 -p 5432 -U postgres && break || sleep 1; done
-      - name: Run DB connection test
-        env:
-          DATABASE_URL: postgresql://postgres:postgres@127.0.0.1:5432/test_db
-        run: |
-          pytest backend-api/tests/integration/test_db_connection.py -q
+          pytest backend-api/tests/test_users_crud.py -q
